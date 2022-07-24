@@ -11,21 +11,18 @@ const products = generateNumbers(5);
 const initialList = [{ products }];
 
 function useLoadMore<T>(
-  initialList: T[]
+  initialList: T[],
+  loadMore: () => T
 ): { list: T[]; loadPrevious: () => void; loadNext: () => void } {
   const [list, setList] = useState<T[]>(initialList);
 
-  const loadData = (count: number): T => {
-    return { products: generateNumbers(count) };
-  };
-
   const loadPrevious = () => {
-    const newItem = loadData(4);
+    const newItem = loadMore();
     setList((prev) => [newItem].concat(prev));
   };
 
   const loadNext = () => {
-    const newItem = loadData(6);
+    const newItem = loadMore();
     setList((prev) => prev.concat(newItem));
   };
 
@@ -36,8 +33,10 @@ function useLoadMore<T>(
   };
 }
 
+const loadFn = () => ({ products: generateNumbers(4) });
+
 export default function App() {
-  const { list, loadPrevious, loadNext } = useLoadMore(initialList);
+  const { list, loadPrevious, loadNext } = useLoadMore(initialList, loadFn);
 
   return (
     <div className="App">
@@ -45,7 +44,7 @@ export default function App() {
       <h2>Start editing to see some magic happen!</h2>
 
       <LoadButton onClick={loadPrevious}>previous</LoadButton>
-      {list.length
+      {list?.length
         ? list.map(({ products }, index) => (
             <ProductList key={index} products={products} />
           ))
